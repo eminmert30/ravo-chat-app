@@ -1,6 +1,7 @@
 {
   "/api/mobile-login/route": "app/api/mobile-login/route.js",
-  "/api/friends/route": "app/api/friends/route.js",
   "/api/messages/[friendId]/route": "app/api/messages/[friendId]/route.js",
+  "/api/friends/route": "app/api/friends/route.js",
+  "/api/messages/send/route": "app/api/messages/send/route.js",
   "/not-found": "app/not-found.js"
 }

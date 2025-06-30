@@ -2,57 +2,89 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Oturum açmanız gerekiyor" },
-        { status: 401 }
-      );
+    // JWT ile userId bulmaya çalış
+    let userId: string | null = null;
+    const authHeader = request.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.replace("Bearer ", "");
+      try {
+        const decoded: any = jwt.verify(token, JWT_SECRET);
+        userId = decoded.userId;
+      } catch {
+        return NextResponse.json({ error: "Geçersiz token" }, { status: 401 });
+      }
     }
-
-    const { receiverId, content, fileUrl, fileType, fileName } =
+    // Eğer JWT yoksa NextAuth session ile devam et
+    let session = null;
+    if (!userId) {
+      session = await getServerSession(authOptions);
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { error: "Oturum açmanız gerekiyor" },
+          { status: 401 }
+        );
+      }
+      userId = session.user.id;
+    }
+    // Parametreleri al
+    const { friendId, content, fileUrl, fileType, fileName } =
       await request.json();
-
-    if (!receiverId || (!content && !fileUrl)) {
+    if (!friendId || (!content && !fileUrl)) {
       return NextResponse.json(
         { error: "Alıcı ID ve mesaj içeriği veya dosya gerekli" },
         { status: 400 }
       );
     }
-
     // Arkadaşlık durumunu kontrol et
-    const friendship = await db.friendship.findFirst({
+    const friendship = await db.friend.findFirst({
       where: {
         OR: [
-          {
-            userId: session.user.id,
-            friendId: receiverId,
-          },
-          {
-            userId: receiverId,
-            friendId: session.user.id,
-          },
+          { userId: userId, friendId: friendId },
+          { userId: friendId, friendId: userId },
         ],
-        status: "ACCEPTED",
       },
     });
-
     if (!friendship) {
       return NextResponse.json(
         { error: "Bu kullanıcıya mesaj gönderme yetkiniz yok" },
         { status: 403 }
       );
     }
-
+    // Chat var mı kontrol et, yoksa oluştur
+    let chat = await db.chat.findFirst({
+      where: {
+        type: "private",
+        participants: {
+          every: {
+            OR: [{ userId: userId }, { userId: friendId }],
+          },
+        },
+      },
+    });
+    if (!chat) {
+      chat = await db.chat.create({
+        data: {
+          type: "private",
+          participants: {
+            create: [
+              { user: { connect: { id: userId } } },
+              { user: { connect: { id: friendId } } },
+            ],
+          },
+        },
+      });
+    }
     // Mesajı oluştur
     const message = await db.message.create({
       data: {
-        senderId: session.user.id,
-        receiverId: receiverId,
+        senderId: userId,
+        chatId: chat.id,
         content: content || "",
         fileUrl,
         fileType,
@@ -60,7 +92,6 @@ export async function POST(request: Request) {
         isAudio: fileType?.startsWith("audio/") || false,
       },
     });
-
     return NextResponse.json(message);
   } catch (error) {
     console.error("Mesaj gönderme hatası:", error);
