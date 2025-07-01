@@ -42,6 +42,7 @@ model User {
   password               String?
   lastSeen               DateTime          @default(now())
   isOnline               Boolean           @default(false)
+  expoPushToken          String?           // Expo push notification token
   accounts               Account[]
   chats                  ChatParticipant[]
   friendsOf              Friend[]          @relation("FriendsOfUser")

@@ -17,6 +17,7 @@ export async function POST(request: Request) {
         const decoded: any = jwt.verify(token, JWT_SECRET);
         userId = decoded.userId;
       } catch {
+        console.log("[API][send] JWT token doğrulama başarısız");
         return NextResponse.json({ error: "Geçersiz token" }, { status: 401 });
       }
     }
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
     if (!userId) {
       session = await getServerSession(authOptions);
       if (!session?.user?.id) {
+        console.log("[API][send] Oturum yok, userId bulunamadı");
         return NextResponse.json(
           { error: "Oturum açmanız gerekiyor" },
           { status: 401 }
@@ -35,7 +37,20 @@ export async function POST(request: Request) {
     // Parametreleri al
     const { friendId, content, fileUrl, fileType, fileName } =
       await request.json();
+    console.log("[API][send] Parametreler:", {
+      userId,
+      friendId,
+      content,
+      fileUrl,
+      fileType,
+      fileName,
+    });
     if (!friendId || (!content && !fileUrl)) {
+      console.log("[API][send] Eksik parametre!", {
+        friendId,
+        content,
+        fileUrl,
+      });
       return NextResponse.json(
         { error: "Alıcı ID ve mesaj içeriği veya dosya gerekli" },
         { status: 400 }
@@ -51,6 +66,7 @@ export async function POST(request: Request) {
       },
     });
     if (!friendship) {
+      console.log("[API][send] Arkadaşlık yok!", { userId, friendId });
       return NextResponse.json(
         { error: "Bu kullanıcıya mesaj gönderme yetkiniz yok" },
         { status: 403 }
@@ -92,9 +108,10 @@ export async function POST(request: Request) {
         isAudio: fileType?.startsWith("audio/") || false,
       },
     });
+    console.log("[API][send] Mesaj oluşturuldu:", message);
     return NextResponse.json(message);
   } catch (error) {
-    console.error("Mesaj gönderme hatası:", error);
+    console.error("[API][send] Mesaj gönderme hatası:", error);
     return NextResponse.json(
       { error: "Mesaj gönderilirken bir hata oluştu" },
       { status: 500 }

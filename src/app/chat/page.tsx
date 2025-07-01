@@ -105,6 +105,7 @@ export default function ChatPage() {
     friendId: string;
   } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -145,7 +146,7 @@ export default function ChatPage() {
           console.log("Yeni mesaj alındı:", data);
           if (
             data.chatId === selectedChat &&
-            data.message.senderId !== session?.user?.id
+            data.message.senderId !== currentUserId
           ) {
             setMessages((prev) => [...prev, data.message]);
             scrollToBottom();
@@ -181,7 +182,102 @@ export default function ChatPage() {
         socketInstance.disconnect();
       };
     }
-  }, [session, selectedChat]);
+  }, [session, selectedChat, currentUserId]);
+
+  // Mesajları yükleme fonksiyonu
+  const fetchMessages = async (chatId: string) => {
+    try {
+      const response = await fetch(`/api/chat/messages?chatId=${chatId}`);
+      if (!response.ok) {
+        throw new Error("Mesajlar yüklenemedi");
+      }
+      const data = await response.json();
+      setMessages(data);
+      scrollToBottom();
+    } catch (error) {
+      console.error("Mesajları yükleme hatası:", error);
+    }
+  };
+
+  // Kendi user ID'mizi al
+  const getCurrentUserId = async () => {
+    console.log("=== GET CURRENT USER ID BAŞLADI ===");
+    console.log("Session?.user?.email:", session?.user?.email);
+    console.log("Session?.user?.id:", session?.user?.id);
+
+    // Önce session'dan ID'yi kontrol et
+    if (session?.user?.id) {
+      console.log("Session'dan ID alındı:", session.user.id);
+      setCurrentUserId(session.user.id);
+      return;
+    }
+
+    // Session'da ID yoksa email ile veritabanından al
+    if (session?.user?.email) {
+      try {
+        console.log("API çağrısı yapılıyor...");
+        const response = await fetch(
+          `/api/users/search?q=${session.user.email}`
+        );
+        console.log("API response status:", response.status);
+
+        if (response.ok) {
+          const users = await response.json();
+          console.log("API response users:", users);
+
+          if (users.length > 0) {
+            const currentUser = users.find(
+              (user: any) => user.email === session.user.email
+            );
+            console.log("Bulunan currentUser:", currentUser);
+
+            if (currentUser) {
+              console.log("CurrentUserId set ediliyor:", currentUser.id);
+              setCurrentUserId(currentUser.id);
+              console.log("Current user ID set to:", currentUser.id);
+            } else {
+              console.log("Email eşleşen kullanıcı bulunamadı");
+            }
+          } else {
+            console.log("API'den hiç kullanıcı dönmedi");
+          }
+        } else {
+          console.log("API çağrısı başarısız:", response.status);
+        }
+      } catch (error) {
+        console.error("User ID alma hatası:", error);
+      }
+    } else {
+      console.log("Session?.user?.email yok");
+    }
+    console.log("=== GET CURRENT USER ID BİTTİ ===");
+  };
+
+  useEffect(() => {
+    console.log("=== GET CURRENT USER ID USE EFFECT ===");
+    console.log("Session?.user?.email değişti:", session?.user?.email);
+    getCurrentUserId();
+  }, [session?.user?.email]);
+
+  // Mesajları ve user ID'yi birlikte yükle
+  const loadChatData = async (chatId: string) => {
+    console.log("=== LOAD CHAT DATA BAŞLADI ===");
+    console.log("ChatId:", chatId);
+
+    try {
+      // Önce user ID'yi al
+      console.log("User ID alınıyor...");
+      await getCurrentUserId();
+      console.log("User ID alındı, mesajlar yükleniyor...");
+
+      // Sonra mesajları yükle
+      await fetchMessages(chatId);
+      console.log("Mesajlar yüklendi");
+    } catch (error) {
+      console.error("Chat data yükleme hatası:", error);
+    }
+    console.log("=== LOAD CHAT DATA BİTTİ ===");
+  };
 
   const handleTyping = () => {
     if (socket && selectedChat) {
@@ -200,25 +296,10 @@ export default function ChatPage() {
     }
   };
 
-  // Mesajları yükleme fonksiyonu
-  const fetchMessages = async (chatId: string) => {
-    try {
-      const response = await fetch(`/api/chat/messages?chatId=${chatId}`);
-      if (!response.ok) {
-        throw new Error("Mesajlar yüklenemedi");
-      }
-      const data = await response.json();
-      setMessages(data);
-      scrollToBottom();
-    } catch (error) {
-      console.error("Mesajları yükleme hatası:", error);
-    }
-  };
-
   // Seçili sohbet değiştiğinde mesajları yükle
   useEffect(() => {
     if (selectedChat) {
-      fetchMessages(selectedChat);
+      loadChatData(selectedChat);
     }
   }, [selectedChat]);
 
@@ -446,7 +527,7 @@ export default function ChatPage() {
       setCurrentChatInfo({ chatId: chat.id, friendId: friendId });
       setShowUserSearch(false);
       setSearchQuery("");
-      fetchMessages(chat.id);
+      loadChatData(chat.id);
     } catch (error: any) {
       console.error(error.message);
     }
@@ -785,6 +866,67 @@ export default function ChatPage() {
   // Add console log to debug showUserSearch state
   console.log("showUserSearch state:", showUserSearch);
 
+  const renderItem = ({ item }: { item: Message }) => {
+    console.log("=== RENDER ITEM BAŞLADI ===");
+    console.log("Item:", item);
+    console.log("CurrentUserId state:", currentUserId);
+    console.log("Session?.user?.id:", session?.user?.id);
+    console.log("Session?.user?.email:", session?.user?.email);
+
+    // Mesajın sender ID'si
+    const messageSenderId = item.senderId;
+    console.log("Message senderId:", messageSenderId);
+
+    // Kendi ID'miz (öncelik sırası: currentUserId > session?.user?.id)
+    const myId = currentUserId || session?.user?.id;
+    console.log("My ID (currentUserId || session?.user?.id):", myId);
+
+    // Mesajın bizim mi olduğunu kontrol et
+    const isMe = messageSenderId === myId;
+    console.log("IsMe calculation (messageSenderId === myId):", isMe);
+    console.log(
+      "MessageSenderId:",
+      messageSenderId,
+      "MyId:",
+      myId,
+      "Equal:",
+      messageSenderId === myId
+    );
+
+    // Bubble rengi ve stili
+    const bubbleColor = isMe ? "#4F46E5" : "#F3F4F6";
+    const bubbleStyle = isMe ? "bubbleMe" : "bubbleOther";
+
+    console.log("Final isMe:", isMe);
+    console.log("Bubble color:", bubbleColor);
+    console.log("Bubble style:", bubbleStyle);
+    console.log("=== RENDER ITEM BİTTİ ===");
+
+    return (
+      <div
+        key={item.id}
+        className={`flex ${isMe ? "justify-end" : "justify-start"} mb-4`}
+      >
+        <div
+          className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+            isMe
+              ? "bg-indigo-600 text-white rounded-br-none"
+              : "bg-gray-200 text-gray-800 rounded-bl-none"
+          }`}
+        >
+          <p className="text-sm">{item.content}</p>
+          <p
+            className={`text-xs mt-1 ${
+              isMe ? "text-indigo-200" : "text-gray-500"
+            }`}
+          >
+            {new Date(item.createdAt).toLocaleTimeString()}
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800">
       <div className="flex h-screen">
@@ -998,71 +1140,7 @@ export default function ChatPage() {
             <>
               {/* Mesaj Alanı */}
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${
-                      message.senderId === session?.user?.id
-                        ? "justify-end"
-                        : "justify-start"
-                    } mb-4`}
-                  >
-                    <div
-                      className={`relative group max-w-[70%] ${
-                        message.senderId === session?.user?.id
-                          ? message.isDeleted
-                            ? "bg-gray-500 text-white rounded-l-lg rounded-br-lg"
-                            : "bg-blue-500 text-white rounded-l-lg rounded-br-lg"
-                          : message.isDeleted
-                          ? "bg-gray-300 text-gray-600 rounded-r-lg rounded-bl-lg"
-                          : "bg-gray-200 text-gray-800 rounded-r-lg rounded-bl-lg"
-                      } p-3 break-words`}
-                    >
-                      {message.senderId === session?.user?.id &&
-                        !message.isDeleted && (
-                          <button
-                            onClick={() => deleteMessage(message.id)}
-                            className="absolute hidden group-hover:block -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 z-50"
-                          >
-                            <XMarkIcon className="h-4 w-4" />
-                          </button>
-                        )}
-                      {message.isAudio && !message.isDeleted ? (
-                        <div className="relative">
-                          <audio
-                            controls
-                            className="max-w-full w-[250px]"
-                            style={{ backgroundColor: 'transparent' }}
-                          >
-                            <source src={message.fileUrl} type="audio/mpeg" />
-                            Tarayıcınız ses oynatmayı desteklemiyor.
-                          </audio>
-                        </div>
-                      ) : (
-                        <div className={message.isDeleted ? "italic text-sm" : ""}>
-                          {message.content}
-                        </div>
-                      )}
-                      {message.fileUrl &&
-                        !message.isAudio &&
-                        !message.isDeleted && (
-                          <div className="mt-2">
-                            <FileViewer
-                              fileUrl={message.fileUrl}
-                              fileType={message.fileType || ""}
-                              fileName={message.fileName || "dosya"}
-                            />
-                          </div>
-                        )}
-                      <div className="text-xs mt-1 text-gray-400">
-                        {new Date(message.createdAt).toLocaleTimeString([], {
-                          hour: "2-digit",
-                          minute: "2-digit",
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                {messages.map((message) => renderItem({ item: message }))}
                 {isTyping && (
                   <div className="text-sm text-gray-400 italic">
                     {typingUser} yazıyor...

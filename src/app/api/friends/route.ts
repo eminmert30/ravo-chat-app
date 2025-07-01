@@ -1,68 +1,67 @@
 import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getFriendsList } from "@/services/friendService";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 export async function GET(request: Request) {
   try {
-    // Önce NextAuth session kontrolü
+    console.log("[Friends API] GET request başladı");
+
+    // Authorization header'ını kontrol et
+    const authHeader = request.headers.get("authorization");
+    console.log("[Friends API] Auth header:", authHeader);
+
     let userId: string | null = null;
-    const session = await getServerSession(authOptions);
-    if (session?.user?.id) {
-      userId = session.user.id;
-    } else {
-      // JWT ile kontrol
-      const authHeader = request.headers.get("authorization");
-      if (authHeader && authHeader.startsWith("Bearer ")) {
-        const token = authHeader.replace("Bearer ", "");
-        try {
-          const decoded: any = jwt.verify(token, JWT_SECRET);
-          userId = decoded.userId;
-        } catch (e) {
-          return NextResponse.json(
-            { error: "Geçersiz token" },
-            { status: 401 }
-          );
-        }
+
+    // JWT token kontrolü (mobil uygulama için)
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      console.log("[Friends API] JWT token alındı");
+
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET) as any;
+        console.log("[Friends API] JWT decoded:", decoded);
+        userId = decoded.userId || decoded.id;
+        console.log("[Friends API] JWT userId:", userId);
+      } catch (jwtError) {
+        console.log("[Friends API] JWT verify error:", jwtError);
       }
     }
+
+    // JWT token yoksa NextAuth session kontrolü (web uygulama için)
     if (!userId) {
+      console.log("[Friends API] NextAuth session kontrol ediliyor");
+      const session = await getServerSession(authOptions);
+      console.log("[Friends API] Session:", session);
+      userId = session?.user?.id;
+      console.log("[Friends API] Session userId:", userId);
+    }
+
+    if (!userId) {
+      console.log("[Friends API] HATA: Kullanıcı kimliği bulunamadı");
       return NextResponse.json(
         { error: "Oturum açmanız gerekiyor" },
         { status: 401 }
       );
     }
-    // Arkadaşları getir
-    const friends = await db.friend.findMany({
-      where: {
-        OR: [{ userId: userId }, { friendId: userId }],
-      },
-      include: {
-        friend: true,
-        user: true,
-      },
-    });
-    // Arkadaş listesini düzenle ve tekrar eden kayıtları engelle
-    const uniqueFriends = new Map();
-    friends.forEach((friendship) => {
-      const isFriend = friendship.userId === userId;
-      const otherUser = isFriend ? friendship.friend : friendship.user;
-      if (!uniqueFriends.has(otherUser.id)) {
-        uniqueFriends.set(otherUser.id, {
-          id: otherUser.id,
-          name: otherUser.name,
-          email: otherUser.email,
-          isOnline: otherUser.isOnline || false,
-        });
-      }
-    });
-    const formattedFriends = Array.from(uniqueFriends.values());
-    return NextResponse.json(formattedFriends);
+
+    console.log("[Friends API] Friends listesi alınıyor, userId:", userId);
+    try {
+      const friends = await getFriendsList(userId);
+      console.log("[Friends API] Friends alındı:", friends);
+      return NextResponse.json(friends);
+    } catch (error: any) {
+      console.log("[Friends API] getFriendsList error:", error);
+      return NextResponse.json(
+        { error: error.message || "Arkadaş listesi alınırken bir hata oluştu" },
+        { status: 400 }
+      );
+    }
   } catch (error) {
-    console.error("Arkadaş listesi getirme hatası:", error);
+    console.error("[Friends API] Genel hata:", error);
     return NextResponse.json(
       { error: "Arkadaş listesi alınırken bir hata oluştu" },
       { status: 500 }
