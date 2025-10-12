@@ -5,6 +5,11 @@ const nextConfig = {
       "utf-8-validate": "commonjs utf-8-validate",
       bufferutil: "commonjs bufferutil",
     });
+    // RovoChatApp dizinini build'den hariç tut
+    config.module.rules.push({
+      test: /RovoChatApp/,
+      use: 'ignore-loader'
+    });
     return config;
   },
   env: {
@@ -22,15 +27,15 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverActions: true,
-  },
-  api: {
-    bodyParser: {
-      sizeLimit: "10mb",
-    },
-    responseLimit: "10mb",
-  },
+  // experimental: {
+  //   serverActions: true,
+  // },
+  // api: {
+  //   bodyParser: {
+  //     sizeLimit: "10mb",
+  //   },
+  //   responseLimit: "10mb",
+  // },
 };
 
 module.exports = nextConfig;
