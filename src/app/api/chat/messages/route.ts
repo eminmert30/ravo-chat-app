@@ -66,14 +66,34 @@ export async function POST(req: Request) {
       },
     });
 
+    console.log("💾 Mesaj veritabanına kaydedildi:", {
+      messageId: message.id,
+      chatId: message.chatId,
+      senderId: message.senderId,
+      content: message.content,
+      fileUrl: message.fileUrl,
+      timestamp: message.createdAt,
+    });
+
     // Socket.io ile mesajı diğer kullanıcılara ilet
     // @ts-ignore
     if (global.io) {
+      console.log("📡 Socket üzerinden mesaj iletiliyor:", {
+        chatId: chatId,
+        messageId: message.id,
+        senderName: message.sender.name,
+      });
+
+      // Chat room'a özel olarak emit et
       // @ts-ignore
-      global.io.emit("newMessage", {
+      global.io.to(chatId).emit("newMessage", {
         chatId,
         message,
       });
+
+      console.log("✅ Mesaj chat room'a gönderildi:", chatId);
+    } else {
+      console.log("⚠️ Socket.io instance bulunamadı!");
     }
 
     return NextResponse.json(message);

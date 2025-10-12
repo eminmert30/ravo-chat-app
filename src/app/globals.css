@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --font-inter: 'Inter', system-ui, sans-serif;
+    --font-inter: "Inter", system-ui, sans-serif;
     --foreground-rgb: 31, 41, 55;
     --background-rgb: 249, 250, 251;
   }
@@ -76,7 +76,7 @@
   /* Modern Scrollbar */
   .scrollbar-modern {
     scrollbar-width: thin;
-    scrollbar-color: theme('colors.primary.DEFAULT') theme('colors.gray.100');
+    scrollbar-color: #4f46e5 #f1f5f9;
   }
 
   .scrollbar-modern::-webkit-scrollbar {
@@ -84,12 +84,81 @@
   }
 
   .scrollbar-modern::-webkit-scrollbar-track {
-    background: theme('colors.gray.100');
+    background: #f1f5f9;
     border-radius: 3px;
   }
 
   .scrollbar-modern::-webkit-scrollbar-thumb {
-    background-color: theme('colors.primary.DEFAULT');
+    background-color: #4f46e5;
     border-radius: 3px;
+  }
+
+  /* Voice Room Styles */
+  .slider {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: theme("colors.white");
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  .slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: theme("colors.white");
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Voice room animations */
+  @keyframes voice-wave {
+    0%,
+    100% {
+      transform: scaleY(0.3);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+  }
+
+  .voice-wave {
+    animation: voice-wave 1s ease-in-out infinite;
+  }
+
+  .voice-wave:nth-child(2) {
+    animation-delay: 0.1s;
+  }
+
+  .voice-wave:nth-child(3) {
+    animation-delay: 0.2s;
+  }
+
+  .voice-wave:nth-child(4) {
+    animation-delay: 0.3s;
+  }
+
+  /* Glass morphism effect */
+  .glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  /* Gradient text */
+  .gradient-text {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
 }

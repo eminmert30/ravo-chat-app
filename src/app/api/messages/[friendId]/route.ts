@@ -93,6 +93,9 @@ export async function GET(
         content: true,
         createdAt: true,
         senderId: true,
+        fileUrl: true,
+        fileType: true,
+        fileName: true,
       },
     });
 

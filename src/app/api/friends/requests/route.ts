@@ -2,20 +2,37 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getPendingFriendRequests } from "@/services/friendService";
+import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: "Oturum açmanız gerekiyor" },
-        { status: 401 }
-      );
+    // Önce JWT ile userId bulmaya çalış
+    let userId: string | null = null;
+    const authHeader = request.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.replace("Bearer ", "");
+      try {
+        const decoded: any = jwt.verify(token, JWT_SECRET);
+        userId = decoded.userId;
+      } catch {
+        return NextResponse.json({ error: "Geçersiz token" }, { status: 401 });
+      }
+    }
+    // Eğer JWT yoksa NextAuth session ile devam et
+    if (!userId) {
+      const session = await getServerSession(authOptions);
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { error: "Oturum açmanız gerekiyor" },
+          { status: 401 }
+        );
+      }
+      userId = session.user.id;
     }
     try {
-      const friendRequests = await getPendingFriendRequests(session.user.id);
+      const friendRequests = await getPendingFriendRequests(userId);
       return NextResponse.json(friendRequests);
     } catch (error: any) {
       return NextResponse.json(

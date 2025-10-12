@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import io from 'socket.io-client';
+import { useState, useEffect } from "react";
+import io from "socket.io-client";
 
 interface Friend {
   id: string;
@@ -16,37 +16,94 @@ interface FriendsListProps {
   selectedFriendId?: string;
 }
 
-export default function FriendsList({ onSelectFriend, selectedFriendId }: FriendsListProps) {
+export default function FriendsList({
+  onSelectFriend,
+  selectedFriendId,
+}: FriendsListProps) {
   const [friends, setFriends] = useState<Friend[]>([]);
+  const [typingFriends, setTypingFriends] = useState<{
+    [friendId: string]: boolean;
+  }>({});
+  const [onlineFriends, setOnlineFriends] = useState<{
+    [friendId: string]: boolean;
+  }>({});
+
+  console.log("[FRIENDSLIST] FriendsList component rendered");
 
   useEffect(() => {
+    console.log("[FRIENDSLIST] useEffect mount, friends:", friends);
     loadFriends();
     const interval = setInterval(loadFriends, 30000); // Her 30 saniyede bir arkadaş listesini güncelle
 
-    // Socket.io bağlantısını al
-    const socket = io(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000', {
-      path: '/api/socket'
-    });
+    // Socket.io bağlantısını al ve typing/online eventlerini dinle
+    const socket = io(
+      process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+      {
+        path: "/api/socket",
+      }
+    );
 
-    // refreshFriendsList event'ini dinle
-    socket.on('refreshFriendsList', () => {
-      loadFriends();
-    });
+    const handleUserTyping = (data: { userId: string }) => {
+      setTypingFriends((prev) => ({ ...prev, [data.userId]: true }));
+      setTimeout(() => {
+        setTypingFriends((prev) => ({ ...prev, [data.userId]: false }));
+      }, 3000);
+    };
+    const handleUserStopTyping = (data: { userId: string }) => {
+      setTypingFriends((prev) => ({ ...prev, [data.userId]: false }));
+    };
+    const handleUserOnline = (data: { userId: string }) => {
+      console.log("[FRIENDSLIST] userOnline event:", data);
+      setOnlineFriends((prev) => {
+        const updated = { ...prev, [data.userId]: true };
+        console.log(
+          "[FRIENDSLIST] onlineFriends state after userOnline:",
+          updated
+        );
+        return updated;
+      });
+    };
+    const handleUserOffline = (data: { userId: string }) => {
+      console.log("[FRIENDSLIST] userOffline event:", data);
+      setOnlineFriends((prev) => {
+        const updated = { ...prev, [data.userId]: false };
+        console.log(
+          "[FRIENDSLIST] onlineFriends state after userOffline:",
+          updated
+        );
+        return updated;
+      });
+    };
+    socket.on("userTyping", handleUserTyping);
+    socket.on("userStopTyping", handleUserStopTyping);
+    socket.on("userOnline", handleUserOnline);
+    socket.on("userOffline", handleUserOffline);
 
     return () => {
       clearInterval(interval);
+      socket.off("userTyping", handleUserTyping);
+      socket.off("userStopTyping", handleUserStopTyping);
+      socket.off("userOnline", handleUserOnline);
+      socket.off("userOffline", handleUserOffline);
       socket.disconnect();
     };
   }, []);
 
+  useEffect(() => {
+    console.log("[FRIENDSLIST] friends array:", friends);
+  }, [friends]);
+
+  useEffect(() => {
+    console.log("[FRIENDSLIST] onlineFriends state:", onlineFriends);
+  }, [onlineFriends]);
+
   const loadFriends = async () => {
     try {
-      const response = await fetch('/api/friends');
+      const response = await fetch("/api/friends");
       const data = await response.json();
-      console.log(data);
       setFriends(data);
     } catch (error) {
-      console.error('Arkadaş listesi yükleme hatası:', error);
+      console.error("Arkadaş listesi yükleme hatası:", error);
     }
   };
 
@@ -61,7 +118,7 @@ export default function FriendsList({ onSelectFriend, selectedFriendId }: Friend
             key={friend.id}
             onClick={() => onSelectFriend(friend.id)}
             className={`p-4 cursor-pointer hover:bg-gray-50 ${
-              selectedFriendId === friend.id ? 'bg-blue-50' : ''
+              selectedFriendId === friend.id ? "bg-blue-50" : ""
             }`}
           >
             <div className="flex items-center space-x-3">
@@ -75,11 +132,19 @@ export default function FriendsList({ onSelectFriend, selectedFriendId }: Friend
               </div>
               <div className="flex-1">
                 <h3 className="font-medium">{friend.name}</h3>
-                {friend.lastMessage && (
+                {onlineFriends[friend.id] ? (
+                  <span className="text-green-600 font-semibold">
+                    çevrimiçi
+                  </span>
+                ) : typingFriends[friend.id] ? (
+                  <span className="text-green-600 font-semibold">
+                    yazıyor...
+                  </span>
+                ) : friend.lastMessage ? (
                   <p className="text-sm text-gray-500 truncate">
                     {friend.lastMessage.content}
                   </p>
-                )}
+                ) : null}
               </div>
               {friend.lastMessage && (
                 <span className="text-xs text-gray-400">

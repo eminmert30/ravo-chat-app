@@ -53,11 +53,15 @@ export async function addFriend({
     },
   });
   // Socket.io ile bildirim gönder
-  if (receiver.email) {
-    io.to(receiver.email).emit("friendRequest", {
-      type: "friendRequest",
-      data: friendRequest,
-    });
+  try {
+    if (receiver.email && io && typeof io.to === "function") {
+      io.to(receiver.email).emit("friendRequest", {
+        type: "friendRequest",
+        data: friendRequest,
+      });
+    }
+  } catch (e) {
+    console.error("Socket emit hatası:", e);
   }
   return friendRequest;
 }
@@ -172,8 +176,21 @@ export async function respondFriendRequest({
     },
   });
   if (!friendRequest) throw new Error("Arkadaşlık isteği bulunamadı");
+
+  // İsteği kabul eden kullanıcının bilgilerini al
+  const acceptingUser = await db.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
+  });
+
+  if (!acceptingUser) throw new Error("Kullanıcı bulunamadı");
+
   if (action === "accept") {
-    await db.$transaction([
+    const result = await db.$transaction([
       db.friendRequest.update({
         where: { id: requestId },
         data: { status: "accepted" },
@@ -190,7 +207,37 @@ export async function respondFriendRequest({
           friendId: userId,
         },
       }),
+      // İki kullanıcı arasında private chat oluştur
+      db.chat.create({
+        data: {
+          type: "private",
+          participants: {
+            create: [{ userId: userId }, { userId: friendRequest.senderId }],
+          },
+        },
+      }),
     ]);
+
+    const newChat = result[3]; // Yeni oluşturulan chat
+
+    // Chat'i participants bilgileriyle birlikte fetch et
+    const chatWithParticipants = await db.chat.findUnique({
+      where: { id: newChat.id },
+      include: {
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
     if (global.io && friendRequest.sender.email) {
       global.io.to(friendRequest.sender.email).emit("friendRequestAccepted", {
         type: "friendRequestAccepted",
@@ -198,13 +245,34 @@ export async function respondFriendRequest({
           requestId,
           acceptedBy: {
             id: userId,
-            name: session?.user?.name || "",
-            email: session?.user?.email || "",
+            name: acceptingUser.name || "",
+            email: acceptingUser.email || "",
           },
         },
       });
       global.io.to(friendRequest.sender.email).emit("refreshFriendsList");
+
+      // Yeni oluşturulan chat hakkında bilgi gönder
+      global.io.to(friendRequest.sender.email).emit("newChat", {
+        type: "newChat",
+        data: {
+          chatId: chatWithParticipants?.id,
+          participants: chatWithParticipants?.participants,
+        },
+      });
     }
+
+    // İsteği kabul eden kişiye de yeni chat bilgisini gönder
+    if (global.io && acceptingUser.email) {
+      global.io.to(acceptingUser.email).emit("newChat", {
+        type: "newChat",
+        data: {
+          chatId: chatWithParticipants?.id,
+          participants: chatWithParticipants?.participants,
+        },
+      });
+    }
+
     return { message: "Arkadaşlık isteği kabul edildi" };
   } else {
     await db.friendRequest.update({
@@ -243,6 +311,7 @@ export async function getFriendsList(userId: string) {
         name: otherUser.name,
         email: otherUser.email,
         isOnline: otherUser.isOnline || false,
+        image: otherUser.image || null, // PROFİL FOTOĞRAFI EKLENDİ
       });
     }
   });
@@ -268,4 +337,13 @@ export async function getPendingFriendRequests(userId: string) {
     },
   });
   return friendRequests;
+}
+
+export async function getSentFriendRequests(userId: string) {
+  return db.friendRequest.findMany({
+    where: { senderId: userId, status: "pending" },
+    include: {
+      receiver: { select: { id: true, name: true, email: true, image: true } },
+    },
+  });
 }

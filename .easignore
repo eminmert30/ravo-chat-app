@@ -1,0 +1,75 @@
+# EAS Build Archive - Agresif dosya hariç tutma
+
+# Node modules (en büyük klasör)
+node_modules/
+
+# Build outputs
+dist/
+build/
+.expo/
+.expo-shared/
+
+# Git (büyük)
+.git/
+
+# Documentation (büyük)
+*.md
+docs/
+README.md
+privacy-policy.md
+terms-of-service.md
+store-listing.md
+content-rating.md
+google-play-console-guide.md
+eas-submit-guide.md
+
+# Test files
+__tests__/
+*.test.js
+*.spec.js
+coverage/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Development configs
+.env.local
+.env.development
+.env.test
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Large assets
+assets/large-videos/
+assets/raw-images/
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# Development files
+*.log
+*.tmp
+*.temp

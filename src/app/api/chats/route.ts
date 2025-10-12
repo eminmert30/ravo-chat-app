@@ -41,9 +41,17 @@ export async function GET(request: Request) {
           },
         },
         messages: {
-          take: 1,
           orderBy: {
             createdAt: "desc",
+          },
+          include: {
+            sender: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
           },
         },
       },

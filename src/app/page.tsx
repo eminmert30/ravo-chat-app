@@ -16,7 +16,6 @@ export default function Home() {
           Ravo<span className="text-[hsl(280,100%,70%)]">Chat</span>
         </h1>
 
-
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-8">
           <div className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20">
             <h3 className="text-2xl font-bold">
@@ -58,6 +57,12 @@ export default function Home() {
             className="inline-flex items-center justify-center px-6 py-2 text-sm font-medium text-white bg-white/10 rounded-md hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
           >
             Kayıt Ol
+          </Link>
+          <Link
+            href="/voice-rooms"
+            className="inline-flex items-center justify-center px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 rounded-md hover:from-purple-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200"
+          >
+            🎤 Sesli Odalar
           </Link>
         </div>
       </div>

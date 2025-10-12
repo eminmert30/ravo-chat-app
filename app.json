@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "00569b38-e993-4741-a658-896189a57005"
+      }
+    },
+    "android": {
+      "package": "com.yusababa.ravochatapp"
+    }
+  }
+}
