@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+// import authOptions removed
 import { getFriendsList } from "@/services/friendService";
 import jwt from "jsonwebtoken";
 
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
     // JWT token yoksa NextAuth session kontrolü (web uygulama için)
     if (!userId) {
-      const session = await getServerSession(authOptions);
+      const session = await getServerSession();
       userId = session?.user?.id;
     }
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { db } from "@/lib/db";
-import { authOptions } from "@/lib/auth";
+// import authOptions removed
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     // Eğer JWT yoksa NextAuth session ile devam et
     let session = null;
     if (!userId) {
-      session = await getServerSession(authOptions);
+      session = await getServerSession();
       if (!session?.user?.id) {
         return new NextResponse("Unauthorized", { status: 401 });
       }

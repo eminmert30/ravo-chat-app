@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+// import authOptions removed
 import { respondFriendRequest } from "@/services/friendService";
 import jwt from "jsonwebtoken";
 
@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     // Eğer JWT yoksa NextAuth session ile devam et
     let session = null;
     if (!userId) {
-      session = await getServerSession(authOptions);
+      session = await getServerSession();
       if (!session?.user?.id) {
         return NextResponse.json(
           { error: "Oturum açmanız gerekiyor" },

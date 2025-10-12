@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+// import authOptions removed
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
     // Eğer JWT yoksa NextAuth session ile devam et
     if (!userId) {
-      const session = await getServerSession(authOptions);
+      const session = await getServerSession();
       console.log("Session user:", session?.user?.email);
 
       if (!session?.user?.id) {
@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
     // Eğer JWT yoksa NextAuth session ile devam et
     let session = null;
     if (!userId) {
-      session = await getServerSession(authOptions);
+      session = await getServerSession();
       if (!session?.user?.id) {
         return NextResponse.json(
           { error: "Oturum açmanız gerekiyor" },
