@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+// import { authOptions } from "@/lib/auth";
 import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     // Eğer JWT yoksa NextAuth session ile devam et
     let session = null;
     if (!userId) {
-      session = await getServerSession(authOptions);
+      session = await getServerSession();
       if (!session?.user?.id) {
         return NextResponse.json(
           { error: "Oturum açmanız gerekiyor" },
