@@ -1,20 +1,20 @@
-import { PrismaClient } from '@prisma/client';
-import { hash } from 'bcrypt';
+import { PrismaClient } from "@prisma/client";
+import { hash } from "argon2";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const password = await hash('test123', 12);
-  
+  const password = await hash("test123");
+
   const user = await prisma.user.create({
     data: {
-      name: 'Test User',
-      email: 'test@example.com',
+      name: "Test User",
+      email: "test@example.com",
       password: password,
     },
   });
 
-  console.log('Test user created:', user);
+  console.log("Test user created:", user);
 }
 
 main()

@@ -5,7 +5,6 @@ import {
   Mic,
   MicOff,
   Headphones,
-  HeadphonesOff,
   Settings,
   Users,
   MessageCircle,
@@ -122,7 +121,7 @@ export default function VoiceRoomInterface({
 
                   {participant.isDeafened && (
                     <div className="absolute -bottom-1 -left-1 w-6 h-6 bg-gray-500 rounded-full flex items-center justify-center">
-                      <HeadphonesOff className="w-3 h-3 text-white" />
+                      <Headphones className="w-3 h-3 text-white" />
                     </div>
                   )}
 
@@ -201,7 +200,7 @@ export default function VoiceRoomInterface({
               }`}
             >
               {isDeafened ? (
-                <HeadphonesOff className="w-6 h-6" />
+                <Headphones className="w-6 h-6" />
               ) : (
                 <Headphones className="w-6 h-6" />
               )}
