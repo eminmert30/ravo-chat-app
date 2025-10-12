@@ -5,9 +5,13 @@ const nextConfig = {
       "utf-8-validate": "commonjs utf-8-validate",
       bufferutil: "commonjs bufferutil",
     });
-    // RovoChatApp dizinini build'den hariç tut
+    // RovoChatApp ve scripts dizinlerini build'den hariç tut
     config.module.rules.push({
       test: /RovoChatApp/,
+      use: 'ignore-loader'
+    });
+    config.module.rules.push({
+      test: /scripts/,
       use: 'ignore-loader'
     });
     return config;

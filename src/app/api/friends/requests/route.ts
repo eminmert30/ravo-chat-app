@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-// import authOptions removed
+// // import authOptions removed
 import { getPendingFriendRequests } from "@/services/friendService";
 import jwt from "jsonwebtoken";
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-// import authOptions removed
+// // import authOptions removed
 import { db } from "@/lib/db";
 import jwt from "jsonwebtoken";
 import { io } from "@/lib/socket";

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-// import authOptions removed
+// // import authOptions removed
 import { prisma } from "@/lib/prisma";
 import jwt from "jsonwebtoken";
 

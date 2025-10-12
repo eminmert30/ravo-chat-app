@@ -1,4 +1,4 @@
-// import authOptions removed
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { db } from "@/lib/db";
 import * as argon2 from "argon2";

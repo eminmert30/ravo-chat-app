@@ -54,14 +54,6 @@
       "static/chunks/972-d20e1d128f1f3af7.js",
       "static/chunks/app/auth/error/page-00bb077df7dd7e53.js"
     ],
-    "/auth/login/page": [
-      "static/chunks/webpack-074987c53fb04d31.js",
-      "static/chunks/fd9d1056-5a7a0de88f0aca6d.js",
-      "static/chunks/117-7812b6637e4c7925.js",
-      "static/chunks/main-app-e4efa115510a6f0e.js",
-      "static/chunks/605-7589a26827cfec07.js",
-      "static/chunks/app/auth/login/page-2dae526a2a5d831b.js"
-    ],
     "/login/page": [
       "static/chunks/webpack-074987c53fb04d31.js",
       "static/chunks/fd9d1056-5a7a0de88f0aca6d.js",
@@ -93,6 +85,30 @@
       "static/chunks/972-d20e1d128f1f3af7.js",
       "static/chunks/app/page-90fc3e7044570b9d.js"
     ],
+    "/auth/login/page": [
+      "static/chunks/webpack-074987c53fb04d31.js",
+      "static/chunks/fd9d1056-5a7a0de88f0aca6d.js",
+      "static/chunks/117-7812b6637e4c7925.js",
+      "static/chunks/main-app-e4efa115510a6f0e.js",
+      "static/chunks/605-7589a26827cfec07.js",
+      "static/chunks/app/auth/login/page-2dae526a2a5d831b.js"
+    ],
+    "/voice-rooms/[roomId]/page": [
+      "static/chunks/webpack-074987c53fb04d31.js",
+      "static/chunks/fd9d1056-5a7a0de88f0aca6d.js",
+      "static/chunks/117-7812b6637e4c7925.js",
+      "static/chunks/main-app-e4efa115510a6f0e.js",
+      "static/chunks/app/voice-rooms/[roomId]/page-2b3483c6f0a522ad.js"
+    ],
+    "/voice-rooms/page": [
+      "static/chunks/webpack-074987c53fb04d31.js",
+      "static/chunks/fd9d1056-5a7a0de88f0aca6d.js",
+      "static/chunks/117-7812b6637e4c7925.js",
+      "static/chunks/main-app-e4efa115510a6f0e.js",
+      "static/chunks/605-7589a26827cfec07.js",
+      "static/chunks/194-9c4a332bdca4c761.js",
+      "static/chunks/app/voice-rooms/page-17f9420e5dd253ca.js"
+    ],
     "/register/page": [
       "static/chunks/webpack-074987c53fb04d31.js",
       "static/chunks/fd9d1056-5a7a0de88f0aca6d.js",
@@ -114,22 +130,6 @@
       "static/chunks/117-7812b6637e4c7925.js",
       "static/chunks/main-app-e4efa115510a6f0e.js",
       "static/chunks/app/register/loading-a6b9e5ea91261e5c.js"
-    ],
-    "/voice-rooms/page": [
-      "static/chunks/webpack-074987c53fb04d31.js",
-      "static/chunks/fd9d1056-5a7a0de88f0aca6d.js",
-      "static/chunks/117-7812b6637e4c7925.js",
-      "static/chunks/main-app-e4efa115510a6f0e.js",
-      "static/chunks/605-7589a26827cfec07.js",
-      "static/chunks/194-9c4a332bdca4c761.js",
-      "static/chunks/app/voice-rooms/page-17f9420e5dd253ca.js"
-    ],
-    "/voice-rooms/[roomId]/page": [
-      "static/chunks/webpack-074987c53fb04d31.js",
-      "static/chunks/fd9d1056-5a7a0de88f0aca6d.js",
-      "static/chunks/117-7812b6637e4c7925.js",
-      "static/chunks/main-app-e4efa115510a6f0e.js",
-      "static/chunks/app/voice-rooms/[roomId]/page-2b3483c6f0a522ad.js"
     ],
     "/chat/page": [
       "static/chunks/webpack-074987c53fb04d31.js",
