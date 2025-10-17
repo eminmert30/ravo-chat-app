@@ -5,7 +5,7 @@ import { join } from "path";
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const audioFile = formData.get("audio") as File;
+    const audioFile = (formData as any).get("audio") as File;
 
     if (!audioFile) {
       return NextResponse.json(

@@ -46,7 +46,7 @@ export async function POST(request: Request) {
     console.log("Upload endpoint called");
 
     const formData = await request.formData();
-    const file = formData.get("file") as File;
+    const file = (formData as any).get("file") as File;
 
     console.log("File received:", file?.name, file?.type, file?.size);
 

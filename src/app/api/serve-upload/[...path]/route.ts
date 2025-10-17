@@ -74,7 +74,7 @@ function getMimeType(filePath: string): string {
     mp3: "audio/mpeg",
     wav: "audio/wav",
     m4a: "audio/mp4",
-    webm: "audio/webm",
+    webm_audio: "audio/webm",
 
     // Video dosyaları
     mp4: "video/mp4",
