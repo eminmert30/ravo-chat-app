@@ -121,6 +121,7 @@ app.prepare().then(() => {
   server.use((req, res) => handle(req, res));
 
   const PORT = process.env.PORT || 3000;
+  const HOST = process.env.HOST || '0.0.0.0';
   const LOCAL_IP = process.env.LOCAL_IP;
   httpServer.listen(PORT, HOST, () => {
     console.log(`> Ready on http://${HOST}:${PORT}`);
