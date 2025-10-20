@@ -215,7 +215,8 @@ app.prepare().then(() => {
   });
 
   const port = parseInt(process.env.PORT || "3000", 10);
-  server.listen(port, () => {
-    console.log(`> Server listening at http://localhost:${port}`);
+  const host = process.env.HOST || "0.0.0.0";
+  server.listen(port, host, () => {
+    console.log(`> Server listening at http://${host}:${port}`);
   });
 });
