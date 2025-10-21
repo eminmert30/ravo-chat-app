@@ -17,13 +17,13 @@ services:
           name: ravochat-db
           property: connectionString
       - key: NEXTAUTH_URL
-        value: https://ravochat-backend.onrender.com
+        value: https://ravo-chat-app.onrender.com
       - key: NEXTAUTH_SECRET
         generateValue: true
       - key: JWT_SECRET
         generateValue: true
       - key: NEXT_PUBLIC_SITE_URL
-        value: https://ravochat-backend.onrender.com
+        value: https://ravo-chat-app.onrender.com
 
 databases:
   - name: ravochat-db
