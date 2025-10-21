@@ -106,11 +106,9 @@ app.post("/api/mobile-login", (req, res) => {
       res.json({
         success: true,
         message: "Giriş başarılı",
-        user: {
-          id: "1",
-          email: email,
-          name: "Yusa",
-        },
+        id: "1",
+        email: email,
+        name: "Yusa",
         token: "mock-jwt-token",
       });
     } else {
@@ -143,11 +141,9 @@ app.post("/api/mobile-register", (req, res) => {
     res.json({
       success: true,
       message: "Kayıt başarılı",
-      user: {
-        id: "2",
-        email: email,
-        name: name,
-      },
+      id: "2",
+      email: email,
+      name: name,
       token: "mock-jwt-token",
     });
   } catch (error) {
@@ -178,35 +174,35 @@ app.get("/api/friends", (req, res) => {
         email: "ahmet@gmail.com",
         isOnline: true,
         lastSeen: new Date().toISOString(),
-        avatar: "https://via.placeholder.com/50"
+        avatar: "https://via.placeholder.com/50",
       },
       {
-        id: "3", 
+        id: "3",
         name: "Mehmet",
         email: "mehmet@gmail.com",
         isOnline: false,
         lastSeen: new Date(Date.now() - 3600000).toISOString(),
-        avatar: "https://via.placeholder.com/50"
+        avatar: "https://via.placeholder.com/50",
       },
       {
         id: "4",
-        name: "Ayşe", 
+        name: "Ayşe",
         email: "ayse@gmail.com",
         isOnline: true,
         lastSeen: new Date().toISOString(),
-        avatar: "https://via.placeholder.com/50"
-      }
+        avatar: "https://via.placeholder.com/50",
+      },
     ];
 
     res.json({
       success: true,
-      friends: friends
+      friends: friends,
     });
   } catch (error) {
     console.error("Friends error:", error);
     res.status(500).json({
       success: false,
-      message: "Arkadaşlar yüklenemedi"
+      message: "Arkadaşlar yüklenemedi",
     });
   }
 });
@@ -222,15 +218,15 @@ app.get("/api/chats", (req, res) => {
         lastMessage: "Merhaba, nasılsın?",
         timestamp: new Date().toISOString(),
         unreadCount: 2,
-        avatar: "https://via.placeholder.com/50"
+        avatar: "https://via.placeholder.com/50",
       },
       {
         id: "2",
-        name: "Mehmet", 
+        name: "Mehmet",
         lastMessage: "Görüşürüz!",
         timestamp: new Date(Date.now() - 1800000).toISOString(),
         unreadCount: 0,
-        avatar: "https://via.placeholder.com/50"
+        avatar: "https://via.placeholder.com/50",
       },
       {
         id: "3",
@@ -238,19 +234,19 @@ app.get("/api/chats", (req, res) => {
         lastMessage: "Teşekkürler!",
         timestamp: new Date(Date.now() - 3600000).toISOString(),
         unreadCount: 1,
-        avatar: "https://via.placeholder.com/50"
-      }
+        avatar: "https://via.placeholder.com/50",
+      },
     ];
 
     res.json({
       success: true,
-      chats: chats
+      chats: chats,
     });
   } catch (error) {
     console.error("Chats error:", error);
     res.status(500).json({
       success: false,
-      message: "Sohbetler yüklenemedi"
+      message: "Sohbetler yüklenemedi",
     });
   }
 });
@@ -267,37 +263,37 @@ app.get("/api/voice-rooms", (req, res) => {
         category: "Genel",
         participantCount: 5,
         maxParticipants: 20,
-        isActive: true
+        isActive: true,
       },
       {
-        id: "2", 
+        id: "2",
         name: "Müzik Odası",
         description: "Müzik dinleyenler için özel oda",
         category: "Müzik",
         participantCount: 3,
         maxParticipants: 10,
-        isActive: true
+        isActive: true,
       },
       {
         id: "3",
         name: "Oyun Odası",
-        description: "Oyun oynayanlar için oda", 
+        description: "Oyun oynayanlar için oda",
         category: "Oyun",
         participantCount: 8,
         maxParticipants: 15,
-        isActive: true
-      }
+        isActive: true,
+      },
     ];
 
     res.json({
       success: true,
-      voiceRooms: voiceRooms
+      voiceRooms: voiceRooms,
     });
   } catch (error) {
     console.error("Voice rooms error:", error);
     res.status(500).json({
       success: false,
-      message: "Sesli odalar yüklenemedi"
+      message: "Sesli odalar yüklenemedi",
     });
   }
 });
@@ -315,18 +311,18 @@ app.get("/api/user/profile", (req, res) => {
       lastSeen: new Date().toISOString(),
       bio: "RavoChat kullanıcısı",
       friendsCount: 3,
-      chatsCount: 3
+      chatsCount: 3,
     };
 
     res.json({
       success: true,
-      profile: profile
+      profile: profile,
     });
   } catch (error) {
     console.error("Profile error:", error);
     res.status(500).json({
       success: false,
-      message: "Profil yüklenemedi"
+      message: "Profil yüklenemedi",
     });
   }
 });
