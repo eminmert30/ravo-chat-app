@@ -10,6 +10,8 @@ const ALLOWED_FILE_TYPES = [
   "audio/mpeg",
   "audio/webm",
   "audio/wav",
+  "audio/mp4",
+  "audio/x-m4a",
   // Resimler
   "image/jpeg",
   "image/png",
@@ -41,15 +43,21 @@ const ALLOWED_FILE_TYPES = [
 
 export async function POST(request: Request) {
   try {
+    console.log("Upload endpoint called");
+
     const formData = await request.formData();
     const file = formData.get("file") as File;
 
+    console.log("File received:", file?.name, file?.type, file?.size);
+
     if (!file) {
+      console.log("No file found in request");
       return NextResponse.json({ error: "Dosya bulunamadı" }, { status: 400 });
     }
 
     // Dosya tipi kontrolü
     if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+      console.log("File type not allowed:", file.type);
       return NextResponse.json(
         {
           error: `Bu dosya türü desteklenmiyor. Desteklenen türler: ${ALLOWED_FILE_TYPES.join(
@@ -62,6 +70,7 @@ export async function POST(request: Request) {
 
     // Dosya boyutu kontrolü
     if (file.size > MAX_FILE_SIZE) {
+      console.log("File too large:", file.size);
       return NextResponse.json(
         { error: "Dosya boyutu 10MB'dan büyük olamaz" },
         { status: 400 }
@@ -88,6 +97,7 @@ export async function POST(request: Request) {
 
     try {
       await writeFile(filePath, buffer);
+      console.log("File saved successfully:", filename);
 
       return NextResponse.json({
         success: true,

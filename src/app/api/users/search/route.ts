@@ -1,37 +1,31 @@
-import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prismadb";
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get('q');
-
-    if (!query) {
-      return NextResponse.json({ error: 'Arama sorgusu gerekli' }, { status: 400 });
+    const { query } = await request.json();
+    if (!query || typeof query !== "string") {
+      return NextResponse.json(
+        { error: "Arama sorgusu gerekli" },
+        { status: 400 }
+      );
     }
-
-    const searchTerm = query.toLowerCase();
-
-    const users = await db.user.findMany({
+    const users = await prisma.user.findMany({
       where: {
-        OR: [
-          { name: { contains: searchTerm } },
-          { email: { contains: searchTerm } },
-        ],
+        OR: [{ name: { contains: query } }, { email: { contains: query } }],
       },
       select: {
         id: true,
         name: true,
         email: true,
+        image: true,
       },
       take: 10,
     });
-
     return NextResponse.json(users);
   } catch (error) {
-    console.error('Kullanıcı arama hatası:', error);
     return NextResponse.json(
-      { error: 'Kullanıcılar aranırken bir hata oluştu' },
+      { error: "Arama sırasında hata oluştu" },
       { status: 500 }
     );
   }

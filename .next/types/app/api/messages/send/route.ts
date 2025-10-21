@@ -1,4 +1,4 @@
-// File: C:\Users\Yunus\Desktop\ravochat-app\src\app\api\messages\send\route.ts
+// File: C:\ravochat-app\src\app\api\messages\send\route.ts
 import * as entry from '../../../../../../src/app/api/messages/send/route.js'
 import type { NextRequest } from 'next/server.js'
 

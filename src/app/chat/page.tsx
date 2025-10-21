@@ -131,7 +131,7 @@ export default function ChatPage() {
       );
 
       socketInstance.on("connect", () => {
-        console.log("Socket bağlantısı başarılı");
+        console.log("🔌 Socket bağlantısı kuruldu:", socketInstance.id);
         socketInstance.emit("userConnected", session.user.email);
       });
 
@@ -143,20 +143,40 @@ export default function ChatPage() {
       socketInstance.on(
         "newMessage",
         (data: { chatId: string; message: Message }) => {
-          console.log("Yeni mesaj alındı:", data);
-          if (
-            data.chatId === selectedChat &&
-            data.message.senderId !== currentUserId
-          ) {
-            setMessages((prev) => [...prev, data.message]);
-            scrollToBottom();
+          console.log("📨 Frontend'de yeni mesaj alındı:", {
+            chatId: data.chatId,
+            selectedChat: selectedChat,
+            messageId: data.message.id,
+            senderId: data.message.senderId,
+            currentUserId: currentUserId,
+            content: data.message.content,
+          });
+
+          // Chat ID kontrolü yap
+          if (data.chatId === selectedChat) {
+            console.log("✅ Chat ID eşleşiyor");
+
+            // Kendi mesajımız değilse ekle
+            if (data.message.senderId !== currentUserId) {
+              console.log("✅ Mesaj sohbete eklendi (başka kullanıcıdan)");
+              setMessages((prev) => [...prev, data.message]);
+              scrollToBottom();
+            } else {
+              console.log("❌ Kendi mesajımız, eklenmedi");
+            }
+          } else {
+            console.log("❌ Chat ID eşleşmiyor:", {
+              receivedChatId: data.chatId,
+              selectedChat: selectedChat,
+              isMatch: data.chatId === selectedChat,
+            });
           }
         }
       );
 
       // Mesaj silme event handler'ı
       socketInstance.on("messageDeleted", (data) => {
-        console.log("Socket event - messageDeleted alındı:", data);
+        console.log("🗑️ Mesaj silme event'i alındı:", data);
         if (data.chatId === selectedChat) {
           const message = messages.find((m) => m.id === data.messageId);
           const isAudioMessage = message?.isAudio || data.isAudio;
@@ -173,6 +193,24 @@ export default function ChatPage() {
                 : msg
             )
           );
+        }
+      });
+
+      // Typing event handler'ı
+      socketInstance.on("userTyping", (data) => {
+        console.log("⌨️ Kullanıcı yazıyor:", data);
+        if (data.chatId === selectedChat && data.userId !== currentUserId) {
+          setIsTyping(true);
+          setTypingUser(data.userName || "Birisi");
+        }
+      });
+
+      // Stop typing event handler'ı
+      socketInstance.on("userStopTyping", (data) => {
+        console.log("⏹️ Kullanıcı yazmayı durdurdu:", data);
+        if (data.chatId === selectedChat && data.userId !== currentUserId) {
+          setIsTyping(false);
+          setTypingUser(null);
         }
       });
 
@@ -201,13 +239,8 @@ export default function ChatPage() {
 
   // Kendi user ID'mizi al
   const getCurrentUserId = async () => {
-    console.log("=== GET CURRENT USER ID BAŞLADI ===");
-    console.log("Session?.user?.email:", session?.user?.email);
-    console.log("Session?.user?.id:", session?.user?.id);
-
     // Önce session'dan ID'yi kontrol et
     if (session?.user?.id) {
-      console.log("Session'dan ID alındı:", session.user.id);
       setCurrentUserId(session.user.id);
       return;
     }
@@ -215,26 +248,20 @@ export default function ChatPage() {
     // Session'da ID yoksa email ile veritabanından al
     if (session?.user?.email) {
       try {
-        console.log("API çağrısı yapılıyor...");
         const response = await fetch(
           `/api/users/search?q=${session.user.email}`
         );
-        console.log("API response status:", response.status);
 
         if (response.ok) {
           const users = await response.json();
-          console.log("API response users:", users);
 
           if (users.length > 0) {
             const currentUser = users.find(
               (user: any) => user.email === session.user.email
             );
-            console.log("Bulunan currentUser:", currentUser);
 
             if (currentUser) {
-              console.log("CurrentUserId set ediliyor:", currentUser.id);
               setCurrentUserId(currentUser.id);
-              console.log("Current user ID set to:", currentUser.id);
             } else {
               console.log("Email eşleşen kullanıcı bulunamadı");
             }
@@ -250,40 +277,27 @@ export default function ChatPage() {
     } else {
       console.log("Session?.user?.email yok");
     }
-    console.log("=== GET CURRENT USER ID BİTTİ ===");
   };
 
   useEffect(() => {
-    console.log("=== GET CURRENT USER ID USE EFFECT ===");
-    console.log("Session?.user?.email değişti:", session?.user?.email);
     getCurrentUserId();
   }, [session?.user?.email]);
 
   // Mesajları ve user ID'yi birlikte yükle
   const loadChatData = async (chatId: string) => {
-    console.log("=== LOAD CHAT DATA BAŞLADI ===");
-    console.log("ChatId:", chatId);
+    await getCurrentUserId();
 
-    try {
-      // Önce user ID'yi al
-      console.log("User ID alınıyor...");
-      await getCurrentUserId();
-      console.log("User ID alındı, mesajlar yükleniyor...");
-
-      // Sonra mesajları yükle
-      await fetchMessages(chatId);
-      console.log("Mesajlar yüklendi");
-    } catch (error) {
-      console.error("Chat data yükleme hatası:", error);
-    }
-    console.log("=== LOAD CHAT DATA BİTTİ ===");
+    // Sonra mesajları yükle
+    await fetchMessages(chatId);
   };
 
   const handleTyping = () => {
     if (socket && selectedChat) {
+      console.log("⌨️ Typing event'i gönderiliyor");
       socket.emit("typing", {
         chatId: selectedChat,
-        user: session?.user?.email,
+        userId: currentUserId,
+        userName: session?.user?.name || session?.user?.email,
       });
 
       if (typingTimeoutRef.current) {
@@ -291,17 +305,37 @@ export default function ChatPage() {
       }
 
       typingTimeoutRef.current = setTimeout(() => {
-        socket.emit("stopTyping", { chatId: selectedChat });
-      }, 2000);
+        console.log("⏹️ Stop typing event'i gönderiliyor");
+        socket.emit("stopTyping", {
+          chatId: selectedChat,
+          userId: currentUserId,
+        });
+      }, 2000) as unknown as NodeJS.Timeout;
     }
   };
 
-  // Seçili sohbet değiştiğinde mesajları yükle
+  // Seçili sohbet değiştiğinde mesajları yükle ve socket room'a katıl
   useEffect(() => {
-    if (selectedChat) {
+    if (selectedChat && socket) {
+      console.log("🏠 Chat room'a katılıyor:", selectedChat);
+      socket.emit("joinChat", selectedChat);
       loadChatData(selectedChat);
     }
-  }, [selectedChat]);
+
+    return () => {
+      if (selectedChat && socket) {
+        console.log("🚪 Chat room'dan ayrılıyor:", selectedChat);
+        socket.emit("leaveChat", selectedChat);
+      }
+    };
+  }, [selectedChat, socket]);
+
+  // Socket bağlantısı değiştiğinde debug log
+  useEffect(() => {
+    if (socket) {
+      console.log("🔌 Socket instance güncellendi:", socket.id);
+    }
+  }, [socket]);
 
   const sendMessage = async () => {
     if (!newMessage.trim() && !selectedFile && !audioBlob) return;
@@ -328,7 +362,6 @@ export default function ChatPage() {
         }
 
         const uploadData = await uploadResponse.json();
-        console.log("Upload response:", uploadData); // Debug için
 
         if (!uploadData.success) {
           throw new Error(uploadData.error || "Dosya yükleme başarısız");
@@ -337,8 +370,6 @@ export default function ChatPage() {
         fileUrl = uploadData.url;
         fileType = selectedFile.type;
         fileName = selectedFile.name;
-
-        console.log("Dosya bilgileri:", { fileUrl, fileType, fileName }); // Debug için
       }
 
       const messageData = {
@@ -348,8 +379,6 @@ export default function ChatPage() {
         fileType,
         fileName,
       };
-
-      console.log("Gönderilecek mesaj:", messageData); // Debug için
 
       const response = await fetch("/api/chat/messages", {
         method: "POST",
@@ -365,14 +394,21 @@ export default function ChatPage() {
       }
 
       const message = await response.json();
-      console.log("Mesaj gönderildi, socket emit yapılıyor:", message);
 
       // Socket üzerinden diğer kullanıcılara bildir
       if (socket) {
+        console.log("📤 Frontend'den socket event'i gönderiliyor:", {
+          chatId: selectedChat,
+          messageId: message.id,
+          content: message.content,
+        });
+
         socket.emit("sendMessage", {
           chatId: selectedChat,
           message,
         });
+      } else {
+        console.log("⚠️ Socket bağlantısı bulunamadı!");
       }
 
       // Kendi mesajımızı hemen göster
@@ -420,7 +456,6 @@ export default function ChatPage() {
       const response = await fetch("/api/friends");
       if (response.ok) {
         const data = await response.json();
-        console.log(data);
         setFriends(data);
       }
     } catch (error) {
@@ -438,7 +473,6 @@ export default function ChatPage() {
   useEffect(() => {
     if (socket) {
       socket.on("refreshFriendsList", () => {
-        console.log("Arkadaş listesi yenileniyor");
         fetchFriends();
       });
     }
@@ -564,11 +598,6 @@ export default function ChatPage() {
           type: "audio/mpeg", // MP3 formatını kullanıyoruz
         });
         setAudioBlob(audioBlob);
-        console.log("Ses kaydı tamamlandı:", {
-          size: audioBlob.size,
-          type: audioBlob.type,
-          duration: audioChunksRef.current.length,
-        });
 
         // Ses kaydını hemen gönder
         await sendAudioMessage(audioBlob);
@@ -593,11 +622,6 @@ export default function ChatPage() {
 
   const sendAudioMessage = async (audioBlob: Blob) => {
     try {
-      console.log("Ses mesajı gönderiliyor:", {
-        blobSize: audioBlob.size,
-        blobType: audioBlob.type,
-      });
-
       setIsUploading(true);
       const formData = new FormData();
       formData.append("file", audioBlob, "audio-message.mp3");
@@ -614,7 +638,6 @@ export default function ChatPage() {
       }
 
       const { url, type } = await uploadResponse.json();
-      console.log("Ses dosyası yüklendi:", { url, type });
 
       const response = await fetch("/api/chat/messages", {
         method: "POST",
@@ -638,7 +661,6 @@ export default function ChatPage() {
       }
 
       const newMessage = await response.json();
-      console.log("Ses mesajı başarıyla kaydedildi:", newMessage);
       // Sesli mesajı socket üzerinden gönder
       socket?.emit("sendMessage", {
         chatId: selectedChat,
@@ -668,12 +690,6 @@ export default function ChatPage() {
       });
 
       if (response.ok) {
-        console.log("Mesaj silindi, bildirimi gönderiliyor:", {
-          messageId,
-          isAudio,
-        });
-
-        // Yerel state'i güncelle
         setMessages((prev) =>
           prev.map((msg) =>
             msg.id === messageId
@@ -863,44 +879,19 @@ export default function ChatPage() {
     );
   }, [isDragging]);
 
-  // Add console log to debug showUserSearch state
-  console.log("showUserSearch state:", showUserSearch);
-
   const renderItem = ({ item }: { item: Message }) => {
-    console.log("=== RENDER ITEM BAŞLADI ===");
-    console.log("Item:", item);
-    console.log("CurrentUserId state:", currentUserId);
-    console.log("Session?.user?.id:", session?.user?.id);
-    console.log("Session?.user?.email:", session?.user?.email);
-
     // Mesajın sender ID'si
     const messageSenderId = item.senderId;
-    console.log("Message senderId:", messageSenderId);
 
     // Kendi ID'miz (öncelik sırası: currentUserId > session?.user?.id)
     const myId = currentUserId || session?.user?.id;
-    console.log("My ID (currentUserId || session?.user?.id):", myId);
 
     // Mesajın bizim mi olduğunu kontrol et
     const isMe = messageSenderId === myId;
-    console.log("IsMe calculation (messageSenderId === myId):", isMe);
-    console.log(
-      "MessageSenderId:",
-      messageSenderId,
-      "MyId:",
-      myId,
-      "Equal:",
-      messageSenderId === myId
-    );
 
     // Bubble rengi ve stili
     const bubbleColor = isMe ? "#4F46E5" : "#F3F4F6";
     const bubbleStyle = isMe ? "bubbleMe" : "bubbleOther";
-
-    console.log("Final isMe:", isMe);
-    console.log("Bubble color:", bubbleColor);
-    console.log("Bubble style:", bubbleStyle);
-    console.log("=== RENDER ITEM BİTTİ ===");
 
     return (
       <div
@@ -1091,7 +1082,6 @@ export default function ChatPage() {
               onClick={() => {
                 setShowUserSearch(!showUserSearch);
                 setSearchQuery("");
-                console.log("Setting showUserSearch to:", !showUserSearch);
               }}
               className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-colors"
             >

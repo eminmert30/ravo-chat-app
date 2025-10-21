@@ -48,9 +48,55 @@ export async function GET(request: Request) {
         { status: 404 }
       );
     }
-    return NextResponse.json({ lastSeen: user.lastSeen });
+    const lastSeen = user.lastSeen
+      ? new Date(user.lastSeen).toLocaleString("tr-TR", {
+          timeZone: "Europe/Istanbul",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      : null;
+    return NextResponse.json({ lastSeen });
   } catch (error) {
     console.error("[USERS_LAST_SEEN]", error);
+    return NextResponse.json({ error: "Bir hata oluştu" }, { status: 500 });
+  }
+}
+
+export async function POST(request: Request) {
+  let userId: string | null = null;
+  try {
+    // JWT ile userId bulmaya çalış
+    const authHeader = request.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.replace("Bearer ", "");
+      try {
+        const decoded: any = jwt.verify(token, JWT_SECRET);
+        userId = decoded.userId;
+      } catch {
+        return NextResponse.json({ error: "Geçersiz token" }, { status: 401 });
+      }
+    }
+    // Eğer JWT yoksa NextAuth session ile devam et
+    let session = null;
+    if (!userId) {
+      session = await getServerSession(authOptions);
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { error: "Oturum açmanız gerekiyor" },
+          { status: 401 }
+        );
+      }
+      userId = session.user.id;
+    }
+    // Kullanıcının lastSeen bilgisini güncelle
+    const updated = await db.user.update({
+      where: { id: userId },
+      data: { lastSeen: new Date() },
+    });
+    console.log("[API] lastSeen güncellendi", userId, updated.lastSeen);
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("[USERS_LAST_SEEN_POST]", error, "userId:", userId);
     return NextResponse.json({ error: "Bir hata oluştu" }, { status: 500 });
   }
 }

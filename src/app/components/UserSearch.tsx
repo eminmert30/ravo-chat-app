@@ -7,6 +7,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  image?: string;
 }
 
 interface UserSearchProps {
@@ -154,9 +155,23 @@ export default function UserSearch({ query, onSelectUser }: UserSearchProps) {
             className="flex items-center justify-between p-4 bg-gray-700/50 hover:bg-gray-600/50 rounded-lg transition-colors"
           >
             <div className="flex items-center space-x-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-                <span className="text-white font-semibold">{user.name[0]}</span>
-              </div>
+              {user.image ? (
+                <img
+                  src={
+                    user.image.startsWith("http")
+                      ? user.image
+                      : `/uploads/${user.image.replace(/^\/uploads\//, "")}`
+                  }
+                  alt={user.name}
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                  <span className="text-white font-semibold">
+                    {user.name[0]}
+                  </span>
+                </div>
+              )}
               <div>
                 <div className="font-medium text-gray-200">{user.name}</div>
                 <div className="text-sm text-gray-400">{user.email}</div>

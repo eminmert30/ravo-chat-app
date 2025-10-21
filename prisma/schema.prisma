@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Account {
@@ -51,6 +51,11 @@ model User {
   sentFriendRequests     FriendRequest[]   @relation("SentFriendRequests")
   messages               Message[]
   sessions               Session[]
+  hostedVoiceRooms       VoiceRoom[]       @relation("VoiceRoomHost")
+  voiceRoomParticipants  VoiceRoomParticipant[] @relation("VoiceRoomParticipants")
+  posts                  Post[]            // Yeni: Kullanıcının paylaştığı fotoğraflar
+  likes                  Like[]            // Yeni: Kullanıcının beğendikleri
+  comments               Comment[]         // Yeni: Kullanıcının yorumları
 }
 
 model Friend {
@@ -111,4 +116,70 @@ model Message {
   isRead    Boolean  @default(false)
   chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
   sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model VoiceRoom {
+  id             String              @id @default(cuid())
+  name           String
+  description    String?
+  category       String
+  maxParticipants Int                @default(10)
+  isPrivate      Boolean             @default(false)
+  isActive       Boolean             @default(true)
+  tags           String              @default("[]") // JSON string for tags
+  hostId         String
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  host           User                @relation("VoiceRoomHost", fields: [hostId], references: [id], onDelete: Cascade)
+  participants   VoiceRoomParticipant[]
+}
+
+model VoiceRoomParticipant {
+  id          String    @id @default(cuid())
+  roomId      String
+  userId      String
+  isHost      Boolean   @default(false)
+  isMuted     Boolean   @default(false)
+  isDeafened  Boolean   @default(false)
+  joinedAt    DateTime  @default(now())
+  leftAt      DateTime?
+  room        VoiceRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user        User      @relation("VoiceRoomParticipants", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roomId])
+}
+
+// Yeni modeller - Fotoğraf paylaşım sistemi
+model Post {
+  id          String    @id @default(cuid())
+  imageUrl    String    // Fotoğraf URL'i
+  caption     String?   // Fotoğraf açıklaması
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  visibility  String    @default("public") // "public" veya "private"
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes       Like[]
+  comments    Comment[]
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId]) // Bir kullanıcı bir fotoğrafı sadece bir kez beğenebilir
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String   // Yorum metni
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
 }

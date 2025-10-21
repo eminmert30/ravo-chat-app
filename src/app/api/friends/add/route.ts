@@ -1,24 +1,30 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import jwt from "jsonwebtoken";
 import { addFriend } from "@/services/friendService";
+
+const JWT_SECRET = process.env.JWT_SECRET || "supersecret";
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
-
-    if (!session?.user?.id) {
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
         { error: "Oturum açmanız gerekiyor" },
         { status: 401 }
       );
     }
-
+    const token = authHeader.split(" ")[1];
+    let userId;
+    try {
+      const payload = jwt.verify(token, JWT_SECRET) as any;
+      userId = payload.userId;
+    } catch {
+      return NextResponse.json({ error: "Geçersiz token" }, { status: 401 });
+    }
     const { friendId } = await request.json();
-
     try {
       const friendRequest = await addFriend({
-        userId: session.user.id,
+        userId,
         friendId,
       });
       return NextResponse.json(friendRequest);

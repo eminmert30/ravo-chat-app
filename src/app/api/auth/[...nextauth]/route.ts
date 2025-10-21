@@ -1,9 +1,9 @@
-import { NextAuthOptions } from 'next-auth';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { PrismaClient } from '@prisma/client';
-import { verify } from 'argon2';
-import NextAuth from 'next-auth/next';
+import { NextAuthOptions } from "next-auth";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaClient } from "@prisma/client";
+import { verify } from "argon2";
+import NextAuth from "next-auth/next";
 
 const prisma = new PrismaClient();
 
@@ -11,10 +11,10 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
   providers: [
     CredentialsProvider({
-      name: 'credentials',
+      name: "credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -23,8 +23,8 @@ export const authOptions: NextAuthOptions = {
 
         const user = await prisma.user.findUnique({
           where: {
-            email: credentials.email
-          }
+            email: credentials.email,
+          },
         });
 
         if (!user || !user.password) {
@@ -42,14 +42,14 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
         };
-      }
-    })
+      },
+    }),
   ],
   session: {
-    strategy: 'jwt'
+    strategy: "jwt",
   },
   pages: {
-    signIn: '/login',
+    signIn: "/login",
   },
   callbacks: {
     jwt({ token, user }) {
@@ -63,10 +63,10 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id as string;
       }
       return session;
-    }
+    },
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: process.env.NODE_ENV === 'development'
+  debug: process.env.NODE_ENV === "development",
 };
 
 const handler = NextAuth(authOptions);

@@ -1,4 +1,4 @@
-// File: C:\Users\Yunus\Desktop\ravochat-app\src\app\api\users\last-seen\route.ts
+// File: C:\ravochat-app\src\app\api\users\last-seen\route.ts
 import * as entry from '../../../../../../src/app/api/users/last-seen/route.js'
 import type { NextRequest } from 'next/server.js'
 
