@@ -135,7 +135,7 @@ export default function ChatPage() {
     if (session?.user) {
       // Yeni socket library kullan
       const socketInstance = connectSocket();
-      
+
       if (socketInstance) {
         socketInstance.on("connect", () => {
           console.log("🔌 Socket bağlantısı kuruldu:", socketInstance.id);
@@ -146,86 +146,86 @@ export default function ChatPage() {
           console.error("Socket bağlantı hatası:", error);
         });
 
-      // Yeni mesaj event handler'ı
-      socketInstance.on(
-        "newMessage",
-        (data: { chatId: string; message: Message }) => {
-          console.log("📨 Frontend'de yeni mesaj alındı:", {
-            chatId: data.chatId,
-            selectedChat: selectedChat,
-            messageId: data.message.id,
-            senderId: data.message.senderId,
-            currentUserId: currentUserId,
-            content: data.message.content,
-          });
-
-          // Chat ID kontrolü yap
-          if (data.chatId === selectedChat) {
-            console.log("✅ Chat ID eşleşiyor");
-
-            // Kendi mesajımız değilse ekle
-            if (data.message.senderId !== currentUserId) {
-              console.log("✅ Mesaj sohbete eklendi (başka kullanıcıdan)");
-              setMessages((prev) => [...prev, data.message]);
-              scrollToBottom();
-            } else {
-              console.log("❌ Kendi mesajımız, eklenmedi");
-            }
-          } else {
-            console.log("❌ Chat ID eşleşmiyor:", {
-              receivedChatId: data.chatId,
+        // Yeni mesaj event handler'ı
+        socketInstance.on(
+          "newMessage",
+          (data: { chatId: string; message: Message }) => {
+            console.log("📨 Frontend'de yeni mesaj alındı:", {
+              chatId: data.chatId,
               selectedChat: selectedChat,
-              isMatch: data.chatId === selectedChat,
+              messageId: data.message.id,
+              senderId: data.message.senderId,
+              currentUserId: currentUserId,
+              content: data.message.content,
             });
+
+            // Chat ID kontrolü yap
+            if (data.chatId === selectedChat) {
+              console.log("✅ Chat ID eşleşiyor");
+
+              // Kendi mesajımız değilse ekle
+              if (data.message.senderId !== currentUserId) {
+                console.log("✅ Mesaj sohbete eklendi (başka kullanıcıdan)");
+                setMessages((prev) => [...prev, data.message]);
+                scrollToBottom();
+              } else {
+                console.log("❌ Kendi mesajımız, eklenmedi");
+              }
+            } else {
+              console.log("❌ Chat ID eşleşmiyor:", {
+                receivedChatId: data.chatId,
+                selectedChat: selectedChat,
+                isMatch: data.chatId === selectedChat,
+              });
+            }
           }
-        }
-      );
+        );
 
-      // Mesaj silme event handler'ı
-      socketInstance.on("messageDeleted", (data) => {
-        console.log("🗑️ Mesaj silme event'i alındı:", data);
-        if (data.chatId === selectedChat) {
-          const message = messages.find((m) => m.id === data.messageId);
-          const isAudioMessage = message?.isAudio || data.isAudio;
+        // Mesaj silme event handler'ı
+        socketInstance.on("messageDeleted", (data) => {
+          console.log("🗑️ Mesaj silme event'i alındı:", data);
+          if (data.chatId === selectedChat) {
+            const message = messages.find((m) => m.id === data.messageId);
+            const isAudioMessage = message?.isAudio || data.isAudio;
 
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === data.messageId
-                ? {
-                    ...msg,
-                    isDeleted: true,
-                    content: data.content,
-                    fileUrl: isAudioMessage ? undefined : msg.fileUrl,
-                  }
-                : msg
-            )
-          );
-        }
-      });
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === data.messageId
+                  ? {
+                      ...msg,
+                      isDeleted: true,
+                      content: data.content,
+                      fileUrl: isAudioMessage ? undefined : msg.fileUrl,
+                    }
+                  : msg
+              )
+            );
+          }
+        });
 
-      // Typing event handler'ı
-      socketInstance.on("userTyping", (data) => {
-        console.log("⌨️ Kullanıcı yazıyor:", data);
-        if (data.chatId === selectedChat && data.userId !== currentUserId) {
-          setIsTyping(true);
-          setTypingUser(data.userName || "Birisi");
-        }
-      });
+        // Typing event handler'ı
+        socketInstance.on("userTyping", (data) => {
+          console.log("⌨️ Kullanıcı yazıyor:", data);
+          if (data.chatId === selectedChat && data.userId !== currentUserId) {
+            setIsTyping(true);
+            setTypingUser(data.userName || "Birisi");
+          }
+        });
 
-      // Stop typing event handler'ı
-      socketInstance.on("userStopTyping", (data) => {
-        console.log("⏹️ Kullanıcı yazmayı durdurdu:", data);
-        if (data.chatId === selectedChat && data.userId !== currentUserId) {
-          setIsTyping(false);
-          setTypingUser(null);
-        }
-      });
+        // Stop typing event handler'ı
+        socketInstance.on("userStopTyping", (data) => {
+          console.log("⏹️ Kullanıcı yazmayı durdurdu:", data);
+          if (data.chatId === selectedChat && data.userId !== currentUserId) {
+            setIsTyping(false);
+            setTypingUser(null);
+          }
+        });
 
-      setSocket(socketInstance);
+        setSocket(socketInstance);
 
-      return () => {
-        disconnectSocket();
-      };
+        return () => {
+          disconnectSocket();
+        };
       }
     }
   }, [session, selectedChat, currentUserId]);
