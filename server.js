@@ -89,6 +89,84 @@ app.get("/", (req, res) => {
   });
 });
 
+// Mobile login endpoint
+app.post("/api/mobile-login", (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email ve şifre gerekli"
+      });
+    }
+
+    // Basit login kontrolü (gerçek authentication için database gerekli)
+    if (email === "yusa@gmail.com" && password === "123456") {
+      res.json({
+        success: true,
+        message: "Giriş başarılı",
+        user: {
+          id: "1",
+          email: email,
+          name: "Yusa"
+        },
+        token: "mock-jwt-token"
+      });
+    } else {
+      res.status(401).json({
+        success: false,
+        message: "Email veya şifre hatalı"
+      });
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Sunucu hatası"
+    });
+  }
+});
+
+// Mobile register endpoint
+app.post("/api/mobile-register", (req, res) => {
+  try {
+    const { email, password, name } = req.body;
+    
+    if (!email || !password || !name) {
+      return res.status(400).json({
+        success: false,
+        message: "Tüm alanlar gerekli"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Kayıt başarılı",
+      user: {
+        id: "2",
+        email: email,
+        name: name
+      },
+      token: "mock-jwt-token"
+    });
+  } catch (error) {
+    console.error("Register error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Sunucu hatası"
+    });
+  }
+});
+
+// Test endpoint
+app.get("/api/test", (req, res) => {
+  res.json({
+    message: "API test endpoint çalışıyor",
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Error handling
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
