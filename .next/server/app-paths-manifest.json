@@ -1,9 +1,0 @@
-{
-  "/api/voice-rooms/route": "app/api/voice-rooms/route.js",
-  "/api/chats/route": "app/api/chats/route.js",
-  "/api/users/last-seen/route": "app/api/users/last-seen/route.js",
-  "/api/upload/route": "app/api/upload/route.js",
-  "/api/posts/route": "app/api/posts/route.js",
-  "/api/posts/[postId]/like/route": "app/api/posts/[postId]/like/route.js",
-  "/api/posts/[postId]/route": "app/api/posts/[postId]/route.js"
-}
