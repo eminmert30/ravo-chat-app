@@ -6,10 +6,11 @@ let socket: Socket | null = null;
 // Socket.IO bağlantısını başlat
 export function connectSocket() {
   if (!socket) {
-    const socketUrl = process.env.NODE_ENV === "production" 
-      ? "https://ravo-chat-app.onrender.com" 
-      : "http://localhost:3000";
-    
+    const socketUrl =
+      process.env.NODE_ENV === "production"
+        ? "https://ravo-chat-app.onrender.com"
+        : "http://localhost:3000";
+
     socket = io(socketUrl, {
       path: "/api/socket",
       transports: ["websocket", "polling"],
@@ -29,7 +30,7 @@ export function connectSocket() {
       console.error("[SOCKET] Connection error:", error);
     });
   }
-  
+
   return socket;
 }
 
@@ -43,6 +44,11 @@ export function disconnectSocket() {
 
 // Socket instance'ını al
 export function getSocket(): Socket | null {
+  return socket;
+}
+
+// Socket.IO server instance'ını al (server-side için)
+export function getSocketIOServer() {
   return socket;
 }
 

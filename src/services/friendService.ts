@@ -1,5 +1,5 @@
 import { db } from "@/lib/db";
-import { io } from "@/lib/socket";
+import { getSocketIOServer } from "@/lib/socket";
 import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";

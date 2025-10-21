@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { db } from "@/lib/db";
 import jwt from "jsonwebtoken";
-import { io } from "@/lib/socket";
+import { getSocketIOServer } from "@/lib/socket";
 import { getFriendsList } from "@/services/friendService";
 
 const JWT_SECRET = process.env.JWT_SECRET || "supersecret";

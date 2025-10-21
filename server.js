@@ -1,11 +1,10 @@
-// Render.com için basit server.js
-// Standalone mode'da Next.js kendi server'ını çalıştırır
+// Render.com için Next.js standalone server
+// Bu dosya sadece port konfigürasyonu için kullanılır
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || "0.0.0.0";
 
-console.log(`🚀 Starting server on ${HOST}:${PORT}`);
+console.log(`🚀 Next.js Standalone Server`);
 console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-console.log(`📦 Next.js Standalone Mode`);
+console.log(`📦 Port: ${PORT}`);
 
-// Next.js standalone server'ı otomatik olarak başlatılır
-// Bu dosya sadece port ve host konfigürasyonu için
+// Next.js standalone mode otomatik olarak server'ı başlatır
+// Custom server gerekmez

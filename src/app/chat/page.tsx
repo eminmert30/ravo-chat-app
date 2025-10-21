@@ -19,7 +19,17 @@ import {
   StopIcon,
 } from "@heroicons/react/24/outline";
 import EmojiPicker from "emoji-picker-react";
-import { connectSocket, disconnectSocket, getSocket, userConnected, userOffline, sendMessage, onNewMessage, offNewMessage } from "@/lib/socket";
+import {
+  connectSocket,
+  disconnectSocket,
+  getSocket,
+  userConnected,
+  userOffline,
+  sendMessage,
+  onNewMessage,
+  offNewMessage,
+} from "@/lib/socket";
+import { Socket } from "socket.io-client";
 import UserSearch from "../components/UserSearch";
 
 const ALLOWED_FILE_TYPES = [
@@ -123,21 +133,18 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (session?.user) {
-      const socketInstance = io(
-        process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        {
-          path: "/api/socket",
-        }
-      );
+      // Yeni socket library kullan
+      const socketInstance = connectSocket();
+      
+      if (socketInstance) {
+        socketInstance.on("connect", () => {
+          console.log("🔌 Socket bağlantısı kuruldu:", socketInstance.id);
+          userConnected(session.user.email, session.user.id);
+        });
 
-      socketInstance.on("connect", () => {
-        console.log("🔌 Socket bağlantısı kuruldu:", socketInstance.id);
-        socketInstance.emit("userConnected", session.user.email);
-      });
-
-      socketInstance.on("connect_error", (error) => {
-        console.error("Socket bağlantı hatası:", error);
-      });
+        socketInstance.on("connect_error", (error) => {
+          console.error("Socket bağlantı hatası:", error);
+        });
 
       // Yeni mesaj event handler'ı
       socketInstance.on(
@@ -217,8 +224,9 @@ export default function ChatPage() {
       setSocket(socketInstance);
 
       return () => {
-        socketInstance.disconnect();
+        disconnectSocket();
       };
+      }
     }
   }, [session, selectedChat, currentUserId]);
 
