@@ -19,7 +19,7 @@ import {
   StopIcon,
 } from "@heroicons/react/24/outline";
 import EmojiPicker from "emoji-picker-react";
-import { io, Socket } from "socket.io-client";
+import { connectSocket, disconnectSocket, getSocket, userConnected, userOffline, sendMessage, onNewMessage, offNewMessage } from "@/lib/socket";
 import UserSearch from "../components/UserSearch";
 
 const ALLOWED_FILE_TYPES = [
