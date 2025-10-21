@@ -9,6 +9,17 @@ const handle = app.getRequestHandler();
 
 let io;
 
+// Error handling
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 app.prepare().then(() => {
   const server = express();
   const httpServer = createServer(server);
@@ -84,4 +95,7 @@ app.prepare().then(() => {
     console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
     console.log(`📦 Next.js + Express + Socket.IO`);
   });
+}).catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
