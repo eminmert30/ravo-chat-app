@@ -327,6 +327,123 @@ app.get("/api/user/profile", (req, res) => {
   }
 });
 
+// Chat messages endpoint
+app.get("/api/chat/messages", (req, res) => {
+  try {
+    const { chatId } = req.query;
+    
+    if (!chatId) {
+      return res.status(400).json({
+        success: false,
+        message: "Chat ID gerekli"
+      });
+    }
+
+    // Mock chat messages data
+    const messages = [
+      {
+        id: "1",
+        content: "Merhaba! Nasılsın?",
+        senderId: "2",
+        receiverId: "1",
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        isRead: true,
+        isDeleted: false
+      },
+      {
+        id: "2",
+        content: "İyiyim, teşekkürler! Sen nasılsın?",
+        senderId: "1",
+        receiverId: "2",
+        timestamp: new Date(Date.now() - 1800000).toISOString(),
+        isRead: true,
+        isDeleted: false
+      },
+      {
+        id: "3",
+        content: "Ben de iyiyim, sağ ol!",
+        senderId: "2",
+        receiverId: "1",
+        timestamp: new Date(Date.now() - 900000).toISOString(),
+        isRead: false,
+        isDeleted: false
+      },
+      {
+        id: "4",
+        content: "Bugün ne yapıyorsun?",
+        senderId: "1",
+        receiverId: "2",
+        timestamp: new Date(Date.now() - 300000).toISOString(),
+        isRead: false,
+        isDeleted: false
+      },
+      {
+        id: "5",
+        content: "Çalışıyorum, sen ne yapıyorsun?",
+        senderId: "2",
+        receiverId: "1",
+        timestamp: new Date().toISOString(),
+        isRead: false,
+        isDeleted: false
+      }
+    ];
+
+    res.json({
+      success: true,
+      messages: messages,
+      chatId: chatId
+    });
+  } catch (error) {
+    console.error("Chat messages error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Mesajlar yüklenemedi"
+    });
+  }
+});
+
+// Send message endpoint
+app.post("/api/chat/send", (req, res) => {
+  try {
+    const { chatId, content, senderId, receiverId } = req.body;
+    
+    if (!chatId || !content || !senderId) {
+      return res.status(400).json({
+        success: false,
+        message: "Chat ID, content ve sender ID gerekli"
+      });
+    }
+
+    // Mock message creation
+    const newMessage = {
+      id: Date.now().toString(),
+      content: content,
+      senderId: senderId,
+      receiverId: receiverId,
+      timestamp: new Date().toISOString(),
+      isRead: false,
+      isDeleted: false
+    };
+
+    // Broadcast to Socket.IO
+    io.emit("newMessage", {
+      chatId: chatId,
+      message: newMessage
+    });
+
+    res.json({
+      success: true,
+      message: newMessage
+    });
+  } catch (error) {
+    console.error("Send message error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Mesaj gönderilemedi"
+    });
+  }
+});
+
 // Error handling
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
