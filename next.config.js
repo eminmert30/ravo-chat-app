@@ -28,15 +28,7 @@ const nextConfig = {
       },
     ],
   },
-  experimental: {
-    serverActions: true,
-  },
-  api: {
-    bodyParser: {
-      sizeLimit: "10mb",
-    },
-    responseLimit: "10mb",
-  },
+  // Server Actions are available by default in Next.js 14
 };
 
 module.exports = nextConfig;

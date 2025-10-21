@@ -5,10 +5,9 @@ import {
   Mic,
   MicOff,
   Headphones,
-  HeadphonesOff,
+  VolumeX,
   Crown,
   Volume2,
-  VolumeX,
   MoreVertical,
 } from "lucide-react";
 
@@ -61,7 +60,7 @@ export default function VoiceRoomParticipant({
 
         {participant.isDeafened && (
           <div className="absolute -bottom-1 -left-1 w-6 h-6 bg-gray-500 rounded-full flex items-center justify-center">
-            <HeadphonesOff className="w-3 h-3 text-white" />
+            <VolumeX className="w-3 h-3 text-white" />
           </div>
         )}
 
@@ -123,7 +122,7 @@ export default function VoiceRoomParticipant({
               title={participant.isDeafened ? "Sesi Aç" : "Sesi Kapat"}
             >
               {participant.isDeafened ? (
-                <HeadphonesOff className="w-4 h-4" />
+                <VolumeX className="w-4 h-4" />
               ) : (
                 <Headphones className="w-4 h-4" />
               )}

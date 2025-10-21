@@ -1,39 +1,38 @@
 import { NextAuthOptions } from "next-auth";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { db } from "@/lib/db";
-import * as argon2 from "argon2";
+import { PrismaClient } from "@prisma/client";
+import { verify } from "argon2";
+
+const prisma = new PrismaClient();
 
 export const authOptions: NextAuthOptions = {
-  pages: {
-    signIn: "/login",
-  },
-  session: {
-    strategy: "jwt",
-  },
+  adapter: PrismaAdapter(prisma) as any,
   providers: [
     CredentialsProvider({
+      name: "credentials",
       credentials: {
-        email: { type: "email" },
-        password: { type: "password" }
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
 
-        const user = await db.user.findUnique({
+        const user = await prisma.user.findUnique({
           where: {
-            email: credentials.email
-          }
+            email: credentials.email,
+          },
         });
 
         if (!user || !user.password) {
           return null;
         }
 
-        const isPasswordValid = await argon2.verify(user.password, credentials.password);
+        const isValid = await verify(user.password, credentials.password);
 
-        if (!isPasswordValid) {
+        if (!isValid) {
           return null;
         }
 
@@ -45,20 +44,26 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  session: {
+    strategy: "jwt",
+  },
+  pages: {
+    signIn: "/login",
+  },
   callbacks: {
-    async session({ token, session }) {
-      if (token) {
-        session.user.id = token.id as string;
-        session.user.email = token.email as string;
-        session.user.name = token.name as string;
-      }
-      return session;
-    },
-    async jwt({ token, user }) {
+    jwt({ token, user }) {
       if (user) {
         token.id = user.id;
       }
       return token;
     },
+    session({ session, token }) {
+      if (token && session.user) {
+        session.user.id = token.id as string;
+      }
+      return session;
+    },
   },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
 };
